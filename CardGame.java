@@ -1,4 +1,8 @@
+
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class CardGame {
@@ -6,6 +10,9 @@ public class CardGame {
     private final List<Player> players;      // List to hold all player instances
     private final List<CardDeck> decks;      // List to hold all deck instances
     private final List<Card> pack;           // List to represent the entire pack of cards
+    private volatile Integer winnerId;  // Shared variable to store winner ID
+    private volatile boolean gameWon;
+
 
     /**
      * Constructor to initialize the game with the specified number of players and pack file.
@@ -18,9 +25,20 @@ public class CardGame {
         this.players = new ArrayList<>();
         this.decks = new ArrayList<>();
         this.pack = new ArrayList<>();
+        this.winnerId = null;
+        this.gameWon = false;
         
         loadPack(packFilePath);    // Load cards from the pack file into the pack list
         initializeGame();          // Initialize players and decks with the loaded cards
+    }
+
+
+    public void setGameWon() {
+        gameWon = true;
+    }
+
+    public boolean getGameWon() {
+        return gameWon;
     }
 
     /**
@@ -37,11 +55,6 @@ public class CardGame {
                 int value = Integer.parseInt(line.trim());   // Parse and trim whitespace
                 pack.add(new Card(value));                   // Add the card to the pack list
             }
-        }
-        
-        // Check if the pack size matches 8 * number of players
-        if (pack.size() != 8 * numPlayers) {
-            throw new IllegalArgumentException("Invalid pack size. Expected " + (8 * numPlayers) + " cards.");
         }
     }
 
@@ -86,19 +99,95 @@ public class CardGame {
         }
     }
 
+    public void deckFileCreation(){
+
+        int counter = 1;
+        for (CardDeck currentDeck : decks) {
+            String currentDeckFileName = ("deck" + counter + "_output.txt");
+            String currentDeckFileContents = currentDeck.toString();
+
+            try (FileWriter writer = new FileWriter(currentDeckFileName, false)) {
+                System.out.println(currentDeckFileContents + "\n");
+                writer.write(currentDeckFileContents + "\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            counter++;
+        }      
+    }
+
+    public synchronized void notifyAllPlayers(int id) {
+        
+        winnerId = id;           // Store winner's ID
+        stopAllPlayers();        // Stop all players
+
+        deckFileCreation();
+        
+        
+    }
+
+    // Stop all player threads
+    private void stopAllPlayers() {
+        for (Player player : players) {
+            player.stopRunning(winnerId, numPlayers);
+            //player.interrupt();      // Notify each player thread to stop
+        }
+    }
+     
+    //Get method for the winner's Id
+    public Integer getWinnerId() {
+        return winnerId;
+    }
+
     /**
      * Starts the game by launching each player's thread.
      */
     public void startGame() {
+
         for (Player player : players) {
-            player.start();  // Start each player's thread
+            player.setMain(this);  // Pass reference of Main to each Player
+            player.start();   // Start each player's thread
         }
-        //for in players:
-            //Stop player thread
+         
+    }
+
+    // Custom exception for invalid files
+    static class InvalidFileException extends Exception {
+        public InvalidFileException(String message) {
+            super(message);
+        }
+    }
+
+
+    public static void validateTextFile(String filePath) throws InvalidFileException, IOException {
+        // Check if the file is null
+        if (filePath == null) {
+            throw new InvalidFileException("The file is null.");
+        }
+        
+        // Convert the string path to a Path object
+        Path path = Paths.get(filePath);
+
+        // Check if the file has a .txt extension
+        if (!filePath.endsWith(".txt")) {
+            throw new InvalidFileException("The file does not have a .txt extension.");
+        }
+
+        // Check if the file exists and is not a directory
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            throw new InvalidFileException("The file does not exist or is not a valid file.");
+        }
+
+        // Check if the file is empty
+        if (Files.size(path) == 0) {
+            throw new InvalidFileException("The file is empty.");
+        }
     }
 
 
     public static void main(String[] args) {
+
         Scanner inputsFromUser = new Scanner(System.in);  // Create a Scanner object for user input
 
         int numPlayers = 0;
@@ -107,7 +196,7 @@ public class CardGame {
         // Asking the user for the number of players
         while (!validInput) {
             // Getting the number of players
-            System.out.print("Please enter the number of players: ");
+            System.out.println("Please enter the number of players: ");
             try {
                 numPlayers = inputsFromUser.nextInt();
                 if (numPlayers >= 2) {
@@ -121,18 +210,79 @@ public class CardGame {
             }
         }
 
-        // Asking the user for the pack file path
-        System.out.println("Please enter the location of the pack to load:");
-        inputsFromUser.nextLine(); // Consume the remaining newline
-        String packFilePath = inputsFromUser.nextLine();  // Read user input for the pack file path
+        String packFilePath = "";
+        validInput = false;
+
+        inputsFromUser.nextLine();
+
+        // Asking the user for the location of the file
+        while (!validInput) {
+            
+
+            System.out.println("Please enter the location of the pack to load: ");
+            packFilePath = inputsFromUser.nextLine();  // Read user input for the pack file path
+            
+            if (packFilePath.equals("")) {
+                System.out.println("Error: Please enter a file location.");
+            }
+
+            else {
+
+                if (packFilePath.endsWith(".txt")) {
+
+                    long lineCount = 0;
+                    try 
+                    {
+                        lineCount = Files.lines(Paths.get(packFilePath)).count();
+
+                        // Check if the pack size matches 8 * number of players
+                        if (lineCount != 8 * numPlayers) {
+                            System.out.println("Invalid pack size. Expected " + (8 * numPlayers) + " cards.");
+                            validInput = false;
+                        } else {
+                            validInput = true; // Exit loop if filename is valid
+                        }
+
+                    } catch (IOException e) {
+                        System.out.println("An error occurred while reading the file: " + e.getMessage());
+                    }
+                }
+                else {
+                System.out.println("Error: The filename must end with .txt. Please try again.");
+                }
+            }
+
+
+            // try {      
+            //     try 
+            //      {   
+            //     // Using my own personal function to validate the file
+            //     validateTextFile(givenFilePathName);
+
+            // } catch (InvalidFileException | IOException e) {
+            //     System.err.println(e.getMessage());
+            // }
+
+
+            // } catch (Exception e) {
+            //     System.out.println("Invalid input for file. Please enter a valid file location.");
+            //     inputsFromUser.nextLine(); // Clear the invalid input
+            // }
+        }
+
+        
 
         // Closing the scanner to prevent memory leaks
         inputsFromUser.close();
+
 
         try {
             // Create and start the game
             CardGame game = new CardGame(numPlayers, packFilePath);
             game.startGame();  // Begin the game by starting all player threads
+
+
+
 
         } catch (NumberFormatException e) {
             System.out.println("Invalid number of players. Please enter a valid integer.");
