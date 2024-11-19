@@ -80,7 +80,7 @@ public class Player extends Thread {
             //This is the file name for that losing player
             String LosingMessage1 = "player " + winnerId + " has informed player " + id + " that player " + winnerId + " has won";
             String LosingMessage2 = "player " + id + " exits";
-            String LosingMessage3 = "player " + id + " final hand: " + hand;
+            String LosingMessage3 = "player " + id + " final hand: " + hand + "\n";
 
             try (FileWriter writer = new FileWriter(outputFileName, true)) {
                 System.out.println(LosingMessage1  + "\n");
@@ -104,7 +104,7 @@ public class Player extends Thread {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         
         // Log the initial hand dealt to this player to their output file
         logAction("player " + id + " initial hand " + hand + "\n");
@@ -112,6 +112,7 @@ public class Player extends Thread {
         // Check if the player has a winning hand immediately after receiving their initial cards
         if (hasWinningHand()) {
             // If the player already has a winning hand, declare a win and exit the method
+            cardgame.setGameWon();
             declareWin();
             cardgame.notifyAllPlayers(id);  // Notify Main class of win
             return;  // Exit as this player has won
@@ -119,6 +120,10 @@ public class Player extends Thread {
 
         // Main game loop: This loop continues until the game is over (i.e., someone has won)
         while (!cardgame.getGameWon()) {
+            
+
+            System.out.println(!cardgame.getGameWon());
+
             // Attempt to draw a card from the deck to the player's left
             Card drawnCard = drawCard();
             
@@ -158,16 +163,18 @@ public class Player extends Thread {
             // Logging the current hand
             logAction("player " + id + " current hand is " + hand + "\n");
             
-
-
-            //Checks if the hand is a winning hand
-            int firstValue = hand.get(0).getValue();
-            if (hand.stream().allMatch(card -> card.getValue() == firstValue)) {
-                //Setting the game field gameWon to true, to stop all other player thread loops.
-                cardgame.setGameWon();
-                declareWin();
-                return; // Stop current player's thread
+            // Check weather the game hasn't been won by another player mid thread
+            if (!cardgame.getGameWon()) {
+                //Checks if the hand is a winning hand
+                int firstValue = hand.get(0).getValue();
+                if (hand.stream().allMatch(card -> card.getValue() == firstValue)) {
+                    //Setting the game field gameWon to true, to stop all other player thread loops.
+                    cardgame.setGameWon();
+                    declareWin();
+                    return; // Stop current player's thread
+                }
             }
+            
         }
     }
 }

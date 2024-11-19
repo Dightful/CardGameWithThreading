@@ -251,27 +251,9 @@ public class CardGame {
                 System.out.println("Error: The filename must end with .txt. Please try again.");
                 }
             }
-
-
-            // try {      
-            //     try 
-            //      {   
-            //     // Using my own personal function to validate the file
-            //     validateTextFile(givenFilePathName);
-
-            // } catch (InvalidFileException | IOException e) {
-            //     System.err.println(e.getMessage());
-            // }
-
-
-            // } catch (Exception e) {
-            //     System.out.println("Invalid input for file. Please enter a valid file location.");
-            //     inputsFromUser.nextLine(); // Clear the invalid input
-            // }
         }
 
         
-
         // Closing the scanner to prevent memory leaks
         inputsFromUser.close();
 
@@ -280,8 +262,6 @@ public class CardGame {
             // Create and start the game
             CardGame game = new CardGame(numPlayers, packFilePath);
             game.startGame();  // Begin the game by starting all player threads
-
-
 
 
         } catch (NumberFormatException e) {
