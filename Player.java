@@ -5,82 +5,93 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+// Represents a player in the card game.
+// Each player operates in its own thread and performs actions like drawing and discarding cards.
+// The goal of the player is to collect a hand of four cards with the same value.
 public class Player extends Thread {
+    // Unique ID for the player.
     private final int id;
+
+    // The preferred value of cards for this player. Uses their ID value.
     private final int preferredValue;
+
+    // The player's current hand of cards, stored as a list.
     private final List<Card> hand = new ArrayList<>();
+
+    // References to the decks to the left and right of the player.
     private final CardDeck leftDeck;
     private final CardDeck rightDeck;
+
+    // The file name where the player's actions are logged.
     private final String outputFileName;
+
+    // A reference to the CardGame class, allowing the player to signal a win to other players. It is the same instance of CardGame for all players. (Defined in the Cardgame class) 
     private CardGame cardgame; 
 
+    // Constructor to initialize a player with their ID and neighboring decks.
     public Player(int id, CardDeck leftDeck, CardDeck rightDeck) {
-        this.id = id;
-        this.preferredValue = id;
-        this.leftDeck = leftDeck;
-        this.rightDeck = rightDeck;
-        this.outputFileName = "player" + id + "_output.txt";
+        this.id = id; // Assigns the player's ID.
+        this.preferredValue = id; // Sets the preferred card value based on ID.
+        this.leftDeck = leftDeck; // Assigns the left deck.
+        this.rightDeck = rightDeck; // Assigns the right deck.
+        this.outputFileName = "player" + id + "_output.txt"; // Creates a unique output file name.
 
-        //Clearing contents of the output file
+        // Clears the contents of the player's output file at the start of the game.
         try (FileWriter writer = new FileWriter(outputFileName, false)) {
-            // FileWriter opened in non-append mode clears the file
-        } catch (IOException e) {
+            // FileWriter in non-append mode clears the file.
+        } catch (IOException e) { 
             System.out.println("An error occurred while clearing the file: " + e.getMessage());
         }
     }
 
-     // Setter to pass Main reference to each Player instance
+    // Method that is called from the CardGame class. This method sets the cardgame field to the instance of the CardGame.
+    // The method in the CardGame class calls this method and sets the cardgame field to be the instance of that cardgame same for all players. So when game is won, the winning player 
+    //can alter a field in the same cardgame object. This is so that the other players know that the game has been won instantly. Thus they can stop playing. 
     public void setMain(CardGame cardgame) {
         this.cardgame = cardgame;
     }
 
-    // Check if all cards in the hand have the same value
+    // Checks if the player has a winning hand (all cards in hand have the same value).
     private boolean hasWinningHand() {
-        int firstValue = hand.get(0).getValue();
-        return hand.stream().allMatch(card -> card.getValue() == firstValue);
+        int firstValue = hand.get(0).getValue(); // Gets the value of the first card in hand.
+        return hand.stream().allMatch(card -> card.getValue() == firstValue); // Verifies all cards match.
     }
 
-    // Draw a card from the left deck
+    // Draws a card from the left deck.
     private Card drawCard() {
-        return leftDeck.drawCard();
+        return leftDeck.drawCard(); // Returns the card drawn from the left deck.
     }
 
-    // Discard a card (not of preferred value) to the right deck
+    // Discards a card to the right deck.
     private void discardCard(Card card) {
-        rightDeck.addCard(card);
+        rightDeck.addCard(card); // Adds the card to the right deck.
     }
 
-    // Write output to player’s file
+    // Logs an action to the player's output file.
     private void logAction(String message) {
         try (FileWriter writer = new FileWriter(outputFileName, true)) {
-            System.out.println(message + "\n");
-            writer.write(message + "\n");
+            System.out.println(message + "\n"); // Prints the message to the console.
+            writer.write(message + "\n"); // Writes the message to the output file.
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Prints an error if logging fails.
         }
     }
-    
-    //Declares a win and logs the appropriate messeges. Also notifies the other players of the game win
+
+    // Method for when a player has won. It declares and logs the win. Also notifes other players via calling the method in the CardGame object.
     private void declareWin() {
-        //Relevant messeges upon winning the game
-        logAction("player " + id + " wins");
-
-        logAction("player " + id + " exits");
-
-        logAction("player " + id + " final hand: " + hand + "\n");
-
-        cardgame.notifyAllPlayers(id);  // Notify Main class of win
-
+        logAction("player " + id + " wins"); // Logs the win message.
+        logAction("player " + id + " exits"); // Logs the exit message.
+        logAction("player " + id + " final hand: " + hand + "\n"); // Logs the final hand.
+        cardgame.notifyAllPlayers(id); // Notifies the CardGame object of the win. This calls a method that changes the field gameWon to True.
     }
 
-
+    // Handles a losing player's final actions when another player wins.
     public void stopRunning(int winnerId, int numPlayers) {
-        // Adding all the messeges to the losing players files
-        if (winnerId != id) {
-            //This is the file name for that losing player
+        if (winnerId != id) { // Only execute for losing players.
+            // Logs messages to the player's output file upon losing.
             String LosingMessage1 = "player " + winnerId + " has informed player " + id + " that player " + winnerId + " has won";
             String LosingMessage2 = "player " + id + " exits";
-            String LosingMessage3 = "player " + id + " final hand: " + hand + "\n";
+            String LosingMessage3 = "player " + id + " final hand: " + hand;
 
             try (FileWriter writer = new FileWriter(outputFileName, true)) {
                 System.out.println(LosingMessage1  + "\n");
@@ -89,92 +100,62 @@ public class Player extends Thread {
                 writer.write(LosingMessage2 + "\n");
                 System.out.println(LosingMessage3  + "\n");
                 writer.write(LosingMessage3 + "\n");
-
             } catch (IOException e) {
-                e.printStackTrace();
+                e.printStackTrace(); // Handles any error caused by the logging.
             }
-
         }
         return;
-        
     }
 
-    public void addInitialCard(Card card) {
+    // Adds the initial cards to the player's hand during setup. Called from CardGame object.
+    public void addInitialCards(Card card) {
+        // Appending given card from pack to player's hand.
         hand.add(card);
     }
 
+    // Main execution method for the player's thread.
     @Override
     public synchronized void run() {
-        
-        // Log the initial hand dealt to this player to their output file
+        // Logs the initial hand dealt to the player.
         logAction("player " + id + " initial hand " + hand + "\n");
 
-        // Check if the player has a winning hand immediately after receiving their initial cards
+        // Checks if the player has a winning hand immediately after receiving cards.
         if (hasWinningHand()) {
-            // If the player already has a winning hand, declare a win and exit the method
-            cardgame.setGameWon();
-            declareWin();
-            cardgame.notifyAllPlayers(id);  // Notify Main class of win
-            return;  // Exit as this player has won
+            cardgame.setGameWon(); // Marks the game as won.
+            declareWin(); // Calls the method to declare the win for this player to the other players.
+            return; // Exits the thread.
         }
 
-        // Main game loop: This loop continues until the game is over (i.e., someone has won)
+        // Main game loop: Executes until the game is won.
+        // While loop uses the method getGameWon in the cardgame object. To see if the game has been won or not.
         while (!cardgame.getGameWon()) {
-            
-
-            System.out.println(!cardgame.getGameWon());
-
-            // Attempt to draw a card from the deck to the player's left
+            // Draws a card from the left deck.
             Card drawnCard = drawCard();
-            
-            // If the left deck is empty (no card drawn), continue the loop
-            // This will retry until a card is available in the left deck
-            if (drawnCard == null) continue;
+            if (drawnCard == null) continue; // Skips if no card is drawn.
 
-            // Add the drawn card to the player's hand
-            hand.add(drawnCard);
-            
-            // Log the action of drawing a card from the left deck, recording the card's value and deck's identifier
-            logAction("player " + id + " draws a " + drawnCard.getValue() + " from deck " + id);
+            hand.add(drawnCard); // Adds the drawn card to the hand.
+            logAction("player " + id + " draws a " + drawnCard.getValue() + " from deck " + id); // Logs the card drawn.
 
-            // Find a card in the hand that is not of the player's preferred value
-            // Players have a preferred card value based on their ID (e.g., player 1 prefers cards of value 1)
-            // We use Streams here to efficiently filter and find a random card that isn't the preferred value
+            // Finds a card in the hand that is not of the player's preferred value.
             Random random = new Random();
+            List<Card> nonPreferredCards = hand.stream()            // Creates a list of all the non preferred cards.
+                                                .filter(card -> card.getValue() != preferredValue)
+                                                .collect(Collectors.toList());
+            Card discardCard = nonPreferredCards.get(random.nextInt(nonPreferredCards.size())); // Chooses a random card from the list of non preferred cards.
 
-            // Randomly select a card from the list of non-preferred cards
-            List<Card> nonPreferredCards = hand.stream()
-                                            .filter(card -> card.getValue() != preferredValue)
-                                            .collect(Collectors.toList());
-
-            Card discardCard = nonPreferredCards.get(random.nextInt(nonPreferredCards.size()));
-
-            // Check if a discardable card was found
-            //if (discardCard != null) {
-                // Remove the chosen card from the hand (this keeps hand size to 4)
-            hand.remove(discardCard);
-
-            // Discard the selected card to the deck on the player's right
-            // This operation is synchronized in CardDeck to ensure thread safety
-            discardCard(discardCard);
-
-            // Log the discard action, indicating the card's value and the deck it was discarded to
+            hand.remove(discardCard); // Removes the selected card from the hand.
+            discardCard(discardCard); // Discards that card to the right deck.
+            // Logs these actions.
             logAction("player " + id + " discards a " + discardCard.getValue() + " to deck " + ((id % 4) + 1));
-            // Logging the current hand
             logAction("player " + id + " current hand is " + hand + "\n");
-            
-            // Check weather the game hasn't been won by another player mid thread
-            if (!cardgame.getGameWon()) {
-                //Checks if the hand is a winning hand
-                int firstValue = hand.get(0).getValue();
-                if (hand.stream().allMatch(card -> card.getValue() == firstValue)) {
-                    //Setting the game field gameWon to true, to stop all other player thread loops.
-                    cardgame.setGameWon();
-                    declareWin();
-                    return; // Stop current player's thread
-                }
+
+            // Checks if the player has a winning hand.
+            if (!cardgame.getGameWon() && hasWinningHand()) {
+                cardgame.setGameWon(); // Marks the game as won. By calling the setGameWon in the CardGame object.
+                declareWin(); // Declares the win for this player.
+                return; // Exits the thread.
             }
-            
         }
+        return; // Exits the thread.
     }
 }
