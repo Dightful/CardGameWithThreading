@@ -50,15 +50,18 @@ public class TestCard {
     }
     
     @Test
-    public void testToStringEdgeCases() {
+    public void testToStringMaxCase() {
         Card card = new Card(Integer.MAX_VALUE);
         assertEquals("toString should return the string of Integer.MAX_VALUE",
                 String.valueOf(Integer.MAX_VALUE), card.toString());
-        
-        card = new Card(0);
+    }
+    
+    @Test
+    public void testToStringMinCase() {
+        Card card = new Card(0);
         assertEquals("toString should return '0'", "0", card.toString());
     }
-   
+    
     @Test
     public void testImmutability() {
     Card card = new Card(5);
