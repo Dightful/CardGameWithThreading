@@ -1,0 +1,68 @@
+package com.mycompany.card;
+    
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class TestCard {
+    
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCardConstructorWithNegativeValue() {
+        //This should throw an IllegalArgumentException
+        new Card(-1);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testCardConstructorWithNullValue() {
+        //This should throw an IllegalArgumentException
+        new Card(null);
+    }
+        
+    @Test
+    public void testConstructor() {
+        int testValue = 5;
+        Card card = new Card(testValue);
+        assertEquals("Constructor should correctly set the value", testValue, card.getValue());
+    }
+    
+    @Test
+    public void testEdgeValues() {
+        Card card = new Card(Integer.MAX_VALUE);
+        assertEquals("Should handle Integer.MAX_VALUE", Integer.MAX_VALUE, card.getValue());
+        
+        card = new Card(0);
+        assertEquals(0, card.getValue());
+    }
+    
+    @Test
+    public void testGetValue() {
+        int testValue = 10;
+        Card card = new Card(testValue);
+        assertEquals("getValue should return the card's value", testValue, card.getValue());
+    }
+
+    @Test
+    public void testToString() {
+        int testValue = 7;
+        Card card = new Card(testValue);
+        assertEquals("toString should return the string representation of the card's value",
+                     String.valueOf(testValue), card.toString());
+    }
+    
+    @Test
+    public void testToStringEdgeCases() {
+        Card card = new Card(Integer.MAX_VALUE);
+        assertEquals("toString should return the string of Integer.MAX_VALUE",
+                String.valueOf(Integer.MAX_VALUE), card.toString());
+        
+        card = new Card(0);
+        assertEquals("toString should return '0'", "0", card.toString());
+    }
+   
+    @Test
+    public void testImmutability() {
+    Card card = new Card(5);
+    assertEquals("Card value should remain unchanged", 5, card.getValue());
+    assertEquals("Card value should remain unchanged on multiple calls", 5, card.getValue());
+    }
+}
