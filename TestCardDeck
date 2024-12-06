@@ -1,0 +1,110 @@
+package org.example;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class CardDeckTest {
+
+    private CardDeck cardDeck;
+    private Card card;
+
+    @BeforeEach
+    void setUp() {
+        cardDeck = new CardDeck();
+        // Card value can be any non-negative integer, here example is 1
+        card = new Card(1);
+    }
+
+    @Test
+    void testAddCard() {
+        cardDeck.addCard(card);
+        assertFalse(cardDeck.isEmpty(), "Deck should not be empty after adding a card");
+    }
+
+    @Test
+    void testDrawCard() {
+        cardDeck.addCard(card);
+        Card drawnCard = cardDeck.drawCard();
+        assertEquals(card, drawnCard, "The drawn card should be the same as the added card");
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after drawing the only card");
+    }
+
+    @Test
+    void testIsEmpty() {
+        assertTrue(cardDeck.isEmpty(), "New deck should be empty");
+        cardDeck.addCard(card);
+        assertFalse(cardDeck.isEmpty(), "Deck should not be empty after adding a card");
+        cardDeck.drawCard();
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after all cards are drawn");
+    }
+
+    @Test
+    void testToString() {
+        String emptyDeckString = cardDeck.toString();
+        assertEquals("[]", emptyDeckString, "Empty deck should be represented as []");
+        cardDeck.addCard(card);
+        String nonEmptyDeckString = cardDeck.toString();
+        assertNotEquals("[]", nonEmptyDeckString, "Non-empty deck should not be represented as []");
+    }
+
+    @Test
+    void testAddMultipleCards() {
+        Card card1 = new Card(2);
+        Card card2 = new Card(3);
+        cardDeck.addCard(card);
+        cardDeck.addCard(card1);
+        cardDeck.addCard(card2);
+        assertEquals("[1, 2, 3]", cardDeck.toString(), "Deck should contain the cards in added order");
+    }
+
+    @Test
+    void testAddNullCard() {
+        assertThrows(NullPointerException.class, () -> cardDeck.addCard(null), "Adding a null card should throw a NullPointerException");
+    }
+
+    @Test
+    void testDrawAllCards() {
+        for (int i = 0; i < 10; i++) {
+            cardDeck.addCard(new Card(i));
+        }
+        for (int i = 0; i < 10; i++) {
+            Card drawnCard = cardDeck.drawCard();
+            assertEquals(i, drawnCard.getValue(), "Drawn cards should be in the order they were added");
+        }
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after all cards are drawn");
+    }
+
+    @Test
+    void testSequentialAddAndDraw() {
+        cardDeck.addCard(new Card(1));
+        Card drawnCard1 = cardDeck.drawCard();
+        assertEquals(1, drawnCard1.getValue(), "First draw should return the first added card");
+
+        cardDeck.addCard(new Card(2));
+        cardDeck.addCard(new Card(3));
+
+        Card drawnCard2 = cardDeck.drawCard();
+        assertEquals(2, drawnCard2.getValue(), "Second draw should return the second added card");
+
+        Card drawnCard3 = cardDeck.drawCard();
+        assertEquals(3, drawnCard3.getValue(), "Third draw should return the third added card");
+
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after all sequentially added cards are drawn");
+    }
+
+    @Test
+    void testLargeNumberOfCards() {
+        int largeNum = 1000;
+        for (int i = 0; i < largeNum; i++) {
+            cardDeck.addCard(new Card(i));
+        }
+        assertFalse(cardDeck.isEmpty(), "Deck should not be empty after adding a large number of cards");
+
+        for (int i = 0; i < largeNum; i++) {
+            Card drawnCard = cardDeck.drawCard();
+            assertEquals(i, drawnCard.getValue(), "Drawn cards should be in the order they were added");
+        }
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after drawing all cards");
+    }
+}
