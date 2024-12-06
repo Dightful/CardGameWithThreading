@@ -34,7 +34,7 @@ public class CardGame {
         return gameWon;
     }
 
-    // Load the pack of acrds from a file, each line containing a single card value.
+    // Load the pack of cards from a file, each line containing a single card value.
     private void loadPack(String filePath) throws IOException {
         // Tries to the load the file path.
         try (BufferedReader bufferedReaderOfFilePath = new BufferedReader(new FileReader(filePath))) {
