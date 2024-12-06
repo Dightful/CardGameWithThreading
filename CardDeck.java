@@ -11,6 +11,9 @@ public class CardDeck {
 
     // Add a card to the bottom of the deck.
     public synchronized void addCard(Card card) {
+        if (card == null) {
+            throw new NullPointerException("Card value can not be null");
+        }
         deck.offer(card); // Adds the card to the queue.
     }
 
