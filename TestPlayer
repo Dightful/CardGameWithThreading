@@ -1,0 +1,133 @@
+package org.example;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+class TestPlayer {
+
+    private Player player;           // The Player instance to test
+    private CardDeck leftDeck;       // The left deck the player interacts with
+    private CardDeck rightDeck;      // The right deck the player interacts with
+    private List<Card> initialCards; // Cards to initialize the player's hand
+    public Card cardToDiscard = new Card(1);
+
+    @BeforeEach
+    void setUp() {
+        // Initialize the decks
+        leftDeck = new CardDeck();
+        rightDeck = new CardDeck();
+
+        // Initialize the player's hand with some cards
+        initialCards = new ArrayList<>();
+        initialCards.add(cardToDiscard);
+        initialCards.add(new Card(2));
+        initialCards.add(new Card(3));
+        initialCards.add(new Card(4));
+
+        // Create the player
+        player = new Player(1, leftDeck, rightDeck);
+
+        // Add the initial cards to the player's hand
+        initialCards.forEach(player::addInitialCards);
+    }
+
+    @Test
+    void testPlayerInitialization() {
+        // Test that the player's ID is correctly set
+        assertEquals(1, player.getPlayerId());
+
+        // Test that the player's hand is correctly initialized
+        assertEquals(4, player.getHand().size());
+        assertEquals(initialCards, player.getHand());
+    }
+
+    @Test
+    void testLogAction() throws IOException {
+        // Arrange
+        String expectedMessage = "Test message for logging.";
+        String fileName = "player1_output.txt"; // Assuming we're testing for player with ID 1
+
+        // Clear the file before test (this is usually done in @BeforeEach)
+        try (FileWriter writer = new FileWriter(fileName, false)) {
+            // Clear the file
+        }
+
+        // Act
+        player.logAction(expectedMessage);
+
+        // Assert
+        // Read the content from the file
+        List<String> lines = java.nio.file.Files.readAllLines(java.nio.file.Paths.get(fileName));
+
+        // Assert that the expected message is the last line of the file
+        assertFalse(lines.isEmpty(), "Log file should not be empty");
+        assertEquals(expectedMessage, lines.get(lines.size() - 1).trim());
+    }
+
+    @Test
+    void testAddInitialCards(){
+        // Test that the cards are added correctly
+        assertEquals(initialCards, player.getHand());
+    }
+
+    @Test
+    void testPlayerDrawsCardFromLeftDeck() {
+        // Add a card to the right deck
+        leftDeck.addCard(new Card(5));
+
+        // Simulate the player drawing a card from the right deck
+        Card drawnCard = player.drawCard();
+
+        // Validate the drawn card
+        assertNotNull(drawnCard);
+        assertEquals(5, drawnCard.getValue());
+
+        // Ensure the right deck is empty after the draw
+        assertTrue(leftDeck.isEmpty());
+    }
+
+    @Test
+    void testPlayerDiscardsCardToRightDeck() {
+        // Simulate the player discarding a card
+        player.discardCard(cardToDiscard);
+
+        // Check that the card is in the left deck
+        assertFalse(rightDeck.isEmpty());
+        assertEquals(1, rightDeck.drawCard().getValue());
+    }
+
+    @Test
+    void testPlayerWinningCondition() {
+        // Update the player's hand to a winning hand
+        player.clearHand();
+        player.addInitialCards(new Card(2));
+        player.addInitialCards(new Card(2));
+        player.addInitialCards(new Card(2));
+        player.addInitialCards(new Card(2));
+
+        // Validate the winning condition
+        assertTrue(player.hasWinningHand());
+    }
+
+    @Test
+    void testPlayerDoesNotWinWithNonUniformCards() {
+        // Keep the hand as initialized
+        assertFalse(player.hasWinningHand());
+    }
+
+    @Test
+    void testPlayerThrowsExceptionForInvalidCardDiscard() {
+        // Try to discard a card not in hand
+        Card invalidCard = new Card(99);
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> player.discardCard(invalidCard));
+
+        // Validate the exception message
+        assertEquals("Card is not in hand", exception.getMessage());
+    }
+}
