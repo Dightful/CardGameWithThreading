@@ -1,6 +1,6 @@
 # CardGameWithThreading
 A simple card game, using Java threading so the players play the game simultaneously.
-No higher than JDK 8
+No higher than JDK 22
 
 
 
@@ -8,13 +8,6 @@ No higher than JDK 8
 
 
 From copied README:
-
-
-Continuous Assessment for ECM2414 - Software Development, set by Prof. Yulei Wu (Year 2, Semester 1). Uses multi-threading in Java to simulate the playing of a simple card game with numerous players and decks. Developed as a pair programming project.
-
-This work received a final mark of 91/100.
-
-Please see specification.pdf for specification.
 
 Compiling the main program
 To compile the main program, do:
