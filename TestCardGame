@@ -1,0 +1,202 @@
+package org.example;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class TestCardGame {
+
+    @Test
+    public void testGetWinnerIdBeforeGameStart() throws IOException {
+        // Given
+        Path tempFile = Files.createTempFile("pack-", ".txt");
+        Files.write(tempFile, "1\n2\n3\n4\n5\n6\n7\n8\n1\n2\n3\n4\n5\n6\n7\n8\n".getBytes());
+        CardGame cardGame = new CardGame(2, tempFile.toString());
+
+        // When
+        Integer winnerId = cardGame.getWinnerId();
+
+        // Then
+        assertNull(winnerId);
+
+        // Cleanup
+        Files.delete(tempFile);
+    }
+
+    @Test
+    public void testGetWinnerIdAfterGameWon() throws IOException {
+        // Given
+        Path tempFile = Files.createTempFile("pack-", ".txt");
+        Files.write(tempFile, "1\n2\n3\n4\n5\n6\n7\n8\n1\n2\n3\n4\n5\n6\n7\n8\n".getBytes());
+        CardGame cardGame = new CardGame(2, tempFile.toString());
+
+        // Simulate a player winning
+        cardGame.notifyAllPlayers(1);
+
+        // When
+        Integer winnerId = cardGame.getWinnerId();
+
+        // Then
+        assertEquals(1, winnerId);
+
+        // Cleanup
+        Files.delete(tempFile);
+    }
+
+    @Test
+    public void testGetWinnerIdWithMultiplePlayers() throws IOException {
+        // Given
+        Path tempFile = Files.createTempFile("pack-", ".txt");
+        String packData = "";
+        for (int i = 0; i < 40; i++) {
+            packData += (i % 10 + 1) + "\n";
+        }
+        Files.write(tempFile, packData.getBytes());
+        CardGame cardGame = new CardGame(5, tempFile.toString());
+
+        // Simulate a player winning
+        cardGame.notifyAllPlayers(3);
+
+        // When
+        Integer winnerId = cardGame.getWinnerId();
+
+        // Then
+        assertEquals(3, winnerId);
+
+        // Cleanup
+        Files.delete(tempFile);
+    }
+
+    @Test
+    void testValidateTextFile_ThrowsExceptionForNullPath() {
+        Exception exception = assertThrows(CardGame.InvalidFileException.class, () -> {
+            CardGame.validateTextFile(null);
+        });
+        assertEquals("The file is null.", exception.getMessage());
+    }
+
+    @Test
+    void testValidateTextFile_ThrowsExceptionForNonTxtFile(@TempDir Path tempDir) throws IOException {
+        Path filePath = Files.createFile(tempDir.resolve("invalidfile.doc"));
+        Exception exception = assertThrows(CardGame.InvalidFileException.class, () -> {
+            CardGame.validateTextFile(filePath.toString());
+        });
+        assertEquals("The file does not have a .txt extension.", exception.getMessage());
+    }
+
+    @Test
+    void testValidateTextFile_ThrowsExceptionForNonExistentFile() {
+        Exception exception = assertThrows(CardGame.InvalidFileException.class, () -> {
+            CardGame.validateTextFile("nonexistent.txt");
+        });
+        assertEquals("The file does not exist or is not a valid file.", exception.getMessage());
+    }
+
+    @Test
+    void testValidateTextFile_ThrowsExceptionForEmptyFile(@TempDir Path tempDir) throws IOException {
+        Path filePath = Files.createFile(tempDir.resolve("empty.txt"));
+        Exception exception = assertThrows(CardGame.InvalidFileException.class, () -> {
+            CardGame.validateTextFile(filePath.toString());
+        });
+        assertEquals("The file is empty.", exception.getMessage());
+    }
+
+    @Test
+    void testValidateTextFile_SucceedsForValidFile(@TempDir Path tempDir) throws IOException {
+        Path filePath = tempDir.resolve("valid.txt");
+        Files.write(filePath, "1\n2\n3\n4\n".getBytes());
+
+        assertDoesNotThrow(() -> CardGame.validateTextFile(filePath.toString()));
+    }
+    @TempDir
+    Path tempDir;
+
+    @Test
+    void testCardGameMainWithValidInputs() throws IOException {
+        // Set up the temporary file with mock data
+        Path fakePackFilePath = tempDir.resolve("pack.txt");
+        Files.write(fakePackFilePath, "1\n2\n3\n4\n5\n6\n7\n8\n".repeat(3).getBytes());
+
+        String packFilePath = fakePackFilePath.toAbsolutePath().toString();
+
+        // Prepare user inputs using a fake input stream
+        String userInputs = "3\n" + packFilePath + "\n";
+        InputStream originalIn = System.in;
+        System.setIn(new ByteArrayInputStream(userInputs.getBytes()));
+
+        // Capture output to verify expected output
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            CardGame.main(new String[]{});
+        } finally {
+            System.setIn(originalIn);
+            System.setOut(originalOut);
+        }
+
+        String programOutput = outputStream.toString();
+
+        // Test the expected interactions in the console
+        assertTrue(programOutput.contains("Please enter the number of players: "));
+        assertTrue(programOutput.contains("Please enter the location of the pack to load: "));
+    }
+
+    @Test
+    void testCardGameMainWithInvalidNumberOfPlayers() throws IOException {
+        // Prepare temporary file path
+        Path fakePackFilePath = tempDir.resolve("pack.txt");
+        Files.write(fakePackFilePath, "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16".getBytes());
+
+        String userInputs = "1\n2\n" + fakePackFilePath.toString() + "\n";
+        InputStream originalIn = System.in;
+        System.setIn(new ByteArrayInputStream(userInputs.getBytes()));
+
+        // Capture system output
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            CardGame.main(new String[]{});
+        } finally {
+            System.setIn(originalIn);
+            System.setOut(originalOut);
+        }
+
+        String output = outputStream.toString();
+
+        assertTrue(output.contains("Invalid input. Please enter an integer 2 or above."));
+    }
+
+    @Test
+    void testCardGameMainWithInvalidPackFilePath() {
+        String userInputs = "3\ninvalid/path/to/pack.txt\nvalid/path/to/pack.txt\n";
+        InputStream originalIn = System.in;
+        System.setIn(new ByteArrayInputStream(userInputs.getBytes()));
+
+        // Capture system output
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            CardGame.main(new String[]{});
+        } catch (Exception ignored) {
+            // Ignore any exception thrown during the test
+        } finally {
+            System.setIn(originalIn);
+            System.setOut(originalOut);
+        }
+
+        String output = outputStream.toString();
+
+        assertTrue(output.contains("An error occurred while reading the file:"));
+    }
+}
