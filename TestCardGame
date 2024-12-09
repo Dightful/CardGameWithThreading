@@ -202,6 +202,6 @@ public class TestCardGame {
 
         String output = outputStream.toString();
 
-        assertTrue(output.contains("An error occurred while reading the file:"));
+        assertTrue(output.contains("An unexpected error occurred while starting the game. Please check the input file and try again:"));
     }
 }
