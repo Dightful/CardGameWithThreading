@@ -33,7 +33,7 @@ public class TestCard {
         // Add the max value to a card and checks if it's the same
         Card card = new Card(Integer.MAX_VALUE);
         assertEquals(Integer.MAX_VALUE, card.getValue());
-        
+
         // Add the min values to a card and checks if it's the same
         card = new Card(0);
         assertEquals(0, card.getValue());
