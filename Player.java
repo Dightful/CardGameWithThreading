@@ -1,3 +1,5 @@
+package org.example;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ public class Player extends Thread {
     private final String outputFileName;
 
     // A reference to the CardGame class, allowing the player to signal a win to other players. It is the same instance of CardGame for all players. (Defined in the Cardgame class) 
-    private CardGame cardgame; 
+    private CardGame cardgame;
 
     // Constructor to initialize a player with their ID and neighboring decks.
     public Player(int id, CardDeck leftDeck, CardDeck rightDeck) {
@@ -39,7 +41,7 @@ public class Player extends Thread {
         // Clears the contents of the player's output file at the start of the game.
         try (FileWriter writer = new FileWriter(outputFileName, false)) {
             // FileWriter in non-append mode clears the file.
-        } catch (IOException e) { 
+        } catch (IOException e) {
             System.out.println("An error occurred while clearing the file: " + e.getMessage());
         }
     }
@@ -52,23 +54,27 @@ public class Player extends Thread {
     }
 
     // Checks if the player has a winning hand (all cards in hand have the same value).
-    private boolean hasWinningHand() {
+    public boolean hasWinningHand() {
         int firstValue = hand.get(0).getValue(); // Gets the value of the first card in hand.
         return hand.stream().allMatch(card -> card.getValue() == firstValue); // Verifies all cards match.
     }
 
     // Draws a card from the left deck.
-    private Card drawCard() {
+    public Card drawCard() {
         return leftDeck.drawCard(); // Returns the card drawn from the left deck.
     }
 
     // Discards a card to the right deck.
-    private void discardCard(Card card) {
+    public void discardCard(Card card) {
+        // Throws exception if the card is not in the players hand
+        if (!hand.contains(card)) {
+            throw new IllegalArgumentException("Card is not in hand");
+        }
         rightDeck.addCard(card); // Adds the card to the right deck.
     }
 
     // Logs an action to the player's output file.
-    private void logAction(String message) {
+    public void logAction(String message) {
         try (FileWriter writer = new FileWriter(outputFileName, true)) {
             System.out.println(message + "\n"); // Prints the message to the console.
             writer.write(message + "\n"); // Writes the message to the output file.
@@ -78,7 +84,7 @@ public class Player extends Thread {
     }
 
     // Method for when a player has won. It declares and logs the win. Also notifes other players via calling the method in the CardGame object.
-    private void declareWin() {
+    public void declareWin() {
         logAction("player " + id + " wins"); // Logs the win message.
         logAction("player " + id + " exits"); // Logs the exit message.
         logAction("player " + id + " final hand: " + hand + "\n"); // Logs the final hand.
@@ -139,12 +145,12 @@ public class Player extends Thread {
             // Finds a card in the hand that is not of the player's preferred value.
             Random random = new Random();
             List<Card> nonPreferredCards = hand.stream()            // Creates a list of all the non preferred cards.
-                                                .filter(card -> card.getValue() != preferredValue)
-                                                .collect(Collectors.toList());
+                    .filter(card -> card.getValue() != preferredValue)
+                    .collect(Collectors.toList());
             Card discardCard = nonPreferredCards.get(random.nextInt(nonPreferredCards.size())); // Chooses a random card from the list of non preferred cards.
 
-            hand.remove(discardCard); // Removes the selected card from the hand.
             discardCard(discardCard); // Discards that card to the right deck.
+            hand.remove(discardCard); // Removes the selected card from the hand.
             // Logs these actions.
             logAction("player " + id + " discards a " + discardCard.getValue() + " to deck " + ((id % 4) + 1));
             logAction("player " + id + " current hand is " + hand + "\n");
@@ -157,5 +163,27 @@ public class Player extends Thread {
             }
         }
         return; // Exits the thread.
+    }
+
+    // Test methods
+
+    // For testing if the player ID has been set up correctly
+    public int getPlayerId(){
+        return id;
+    }
+
+    // For testing if the player hand has been set up properly
+    public List<Card> getHand(){
+        return hand;
+    }
+
+    // For testing to reset a players hand
+    public void clearHand(){
+        hand.clear();
+    }
+
+    // For testing to check if threading had stopped
+    public boolean hasStoppedRunning(){
+        return isInterrupted();
     }
 }
