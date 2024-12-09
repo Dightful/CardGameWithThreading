@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.mockito.Mockito;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,12 +18,16 @@ class TestPlayer {
     private CardDeck rightDeck;      // The right deck the player interacts with
     private List<Card> initialCards; // Cards to initialize the player's hand
     public Card cardToDiscard = new Card(1);
+    private CardGame cardgame;
+    private Player player2;           // The Player2 instance to test
+    private List<Card> initialCards2;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         // Initialize the decks
         leftDeck = new CardDeck();
         rightDeck = new CardDeck();
+        cardgame = new CardGame(2, "src/main/resources/pack.txt");
 
         // Initialize the player's hand with some cards
         initialCards = new ArrayList<>();
@@ -32,6 +38,7 @@ class TestPlayer {
 
         // Create the player
         player = new Player(1, leftDeck, rightDeck);
+        player.setMain(cardgame);
 
         // Add the initial cards to the player's hand
         initialCards.forEach(player::addInitialCards);
@@ -68,6 +75,66 @@ class TestPlayer {
         // Assert that the expected message is the last line of the file
         assertFalse(lines.isEmpty(), "Log file should not be empty");
         assertEquals(expectedMessage, lines.get(lines.size() - 1).trim());
+    }
+
+    @Test
+    void testStopRunning() throws IOException {
+        // Arrange
+        int winnerId = 2; // Assume player 2 wins
+        int numPlayers = 4; // Total number of players
+        player.clearHand();
+        player.addInitialCards(new Card(5));
+        player.addInitialCards(new Card(6));
+        player.addInitialCards(new Card(7));
+        player.addInitialCards(new Card(8));
+
+        // Remove any existing content from the player's output file
+        try (FileWriter writer = new FileWriter("player1_output.txt", false)) {
+            // Clear content
+        }
+
+        // Act: Player is notified of another player's win
+        player.stopRunning(winnerId, numPlayers);
+
+        // Verify: Check log file contents
+        List<String> lines = java.nio.file.Files.readAllLines(java.nio.file.Paths.get("player1_output.txt"));
+        assertTrue(lines.contains("player " + winnerId + " has informed player " + player.getPlayerId() + " that player " + winnerId + " has won"));
+        assertTrue(lines.contains("player " + player.getPlayerId() + " exits"));
+        assertTrue(lines.contains("player " + player.getPlayerId() + " final hand: [" + new Card(5) + ", " + new Card(6) + ", " + new Card(7) + ", " + new Card(8) + "]"));
+    }
+
+    @Test
+    void testDeclareWin() throws IOException {
+        // Arrange: Update the player's hand to a winning hand
+        player.clearHand();
+        player.addInitialCards(new Card(2));
+        player.addInitialCards(new Card(2));
+        player.addInitialCards(new Card(2));
+        player.addInitialCards(new Card(2));
+
+        // Validate the hand is a winning hand
+        assertTrue(player.hasWinningHand());
+
+        // Create a mock or spy of CardGame to verify interactions
+        CardGame mockCardGame = Mockito.mock(CardGame.class);
+        player.setMain(mockCardGame);
+
+        // Clear the file before test
+        try (FileWriter writer = new FileWriter("player1_output.txt", false)) {
+            // Clear content
+        }
+
+        // Act: Player declares win
+        player.declareWin();
+
+        // Verify: Check if the notifyAllPlayers method was called
+        Mockito.verify(mockCardGame).notifyAllPlayers(player.getPlayerId());
+
+        // Verify: Check log file contents
+        List<String> lines = java.nio.file.Files.readAllLines(java.nio.file.Paths.get("player1_output.txt"));
+        assertTrue(lines.contains("player 1 wins"));
+        assertTrue(lines.contains("player 1 exits"));
+        assertTrue(lines.contains("player 1 final hand: [" + new Card(2) + ", " + new Card(2) + ", " + new Card(2) + ", " + new Card(2) + "]"));
     }
 
     @Test
@@ -130,4 +197,49 @@ class TestPlayer {
         // Validate the exception message
         assertEquals("Card is not in hand", exception.getMessage());
     }
+
+    @Test
+    void testRunMethodLeadsToWin() throws InterruptedException {
+        // Add cards to decks
+        leftDeck.addCard(new Card(1));
+        leftDeck.addCard(new Card(1));
+        leftDeck.addCard(new Card(1));
+        leftDeck.addCard(new Card(1));
+
+        Thread playerThread = new Thread(player);
+        playerThread.start();
+
+        // Give some time for thread to complete its process
+        playerThread.join();
+
+        // Check if the player won the game
+        assertTrue(cardgame.getGameWon());
+    }
+
+    @Test
+    void testInitialWinningHand() throws InterruptedException {
+        // Initialize the player's hand with some cards
+        initialCards2 = new ArrayList<>();
+        initialCards2.add(new Card(2));
+        initialCards2.add(new Card(2));
+        initialCards2.add(new Card(2));
+        initialCards2.add(new Card(2));
+
+        // Create the player
+        player2 = new Player(2, leftDeck, rightDeck);
+        player2.setMain(cardgame);
+
+        // Add the initial cards to the player's hand
+        initialCards2.forEach(player2::addInitialCards);
+
+        Thread playerThread = new Thread(player2);
+        playerThread.start();
+
+        // Give some time for thread to complete its process
+        playerThread.join();
+
+        // Check if the player won the game
+        assertTrue(cardgame.getGameWon());
+    }
+
 }
