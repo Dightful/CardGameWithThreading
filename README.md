@@ -3,7 +3,7 @@ A simple card game, using Java threading so the players play the game simultaneo
 No higher than JDK 22
 
 
-
+Need maven with these dependencies:
 
 
 
