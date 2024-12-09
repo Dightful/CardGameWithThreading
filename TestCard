@@ -1,6 +1,6 @@
 package org.example;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -9,34 +9,42 @@ public class TestCard {
 
     @Test
     public void testCardConstructorWithNegativeValue() {
+        // Checks if an exception is thrown if a negative is given
         assertThrows(IllegalArgumentException.class, () -> {new Card(-1); });
     }
 
     @Test
     public void testCardConstructorWithNullValue() {
+        // Checks if an exception is thrown if a null is given
         assertThrows(IllegalArgumentException.class, () -> {new Card(null);});
     }
 
     @Test
     public void testConstructor() {
+        // Add value to card
         int testValue = 5;
         Card card = new Card(testValue);
+        // Checks if the card value is the same
         assertEquals(testValue, card.getValue());
     }
 
     @Test
     public void testEdgeValues() {
+        // Add the max value to a card and checks if it's the same
         Card card = new Card(Integer.MAX_VALUE);
         assertEquals(Integer.MAX_VALUE, card.getValue());
-
+        
+        // Add the min values to a card and checks if it's the same
         card = new Card(0);
         assertEquals(0, card.getValue());
     }
 
     @Test
     public void testGetValue() {
+        // Adds a value to card
         int testValue = 10;
         Card card = new Card(testValue);
+        // Checks the value after it's been called
         assertEquals(testValue, card.getValue());
     }
 
@@ -44,24 +52,28 @@ public class TestCard {
     public void testToString() {
         int testValue = 7;
         Card card = new Card(testValue);
+        // Checks if the string is correct
         assertEquals(String.valueOf(testValue), card.toString());
     }
 
     @Test
     public void testToStringMaxCase() {
         Card card = new Card(Integer.MAX_VALUE);
+        // Checks if the string is correct
         assertEquals(String.valueOf(Integer.MAX_VALUE), card.toString());
     }
 
     @Test
     public void testToStringMinCase() {
         Card card = new Card(0);
+        // Checks if the string is correct
         assertEquals("0", card.toString());
     }
 
     @Test
     public void testImmutability() {
         Card card = new Card(5);
+        // Checks if the value is called for more than once then it will stay the same
         assertEquals(5, card.getValue());
         assertEquals(5, card.getValue());
     }
