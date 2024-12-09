@@ -1,3 +1,4 @@
+
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -11,10 +12,13 @@ public class CardDeck {
 
     // Add a card to the bottom of the deck.
     public synchronized void addCard(Card card) {
+        // Check if the card is null to prevent adding invalid cards.
+        // If null, throw a NullPointerException with a clear error message.
         if (card == null) {
-            throw new NullPointerException("Card value can not be null");
+            throw new NullPointerException("Card value cannot be null");
         }
-        deck.offer(card); // Adds the card to the queue.
+        // Adds the card to the bottom of the deck using a queue structure.
+        deck.offer(card); // `offer` safely adds the card to the queue.
     }
 
     // Draw (remove) a card from the top of the deck.

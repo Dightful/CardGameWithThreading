@@ -34,7 +34,7 @@ public class CardGame {
         return gameWon;
     }
 
-    // Load the pack of cards from a file, each line containing a single card value.
+    // Load the pack of acrds from a file, each line containing a single card value.
     private void loadPack(String filePath) throws IOException {
         // Tries to the load the file path.
         try (BufferedReader bufferedReaderOfFilePath = new BufferedReader(new FileReader(filePath))) {
@@ -92,13 +92,12 @@ public class CardGame {
             String currentDeckFileContents = currentDeck.toString();
 
             try (FileWriter writer = new FileWriter(currentDeckFileName, false)) {
-                System.out.println(currentDeckFileContents + "\n"); // One card of the deck is written on each line.
+                // One card of the deck is written on each line.
                 writer.write(currentDeckFileContents + "\n");
             } catch (IOException e) {
                 e.printStackTrace(); // Handles any errors encouted when trying to write to the deck files. 
             }
-
-            counter++;
+            counter++; // Incrementing the counter. 
         }
     }
 
@@ -245,10 +244,11 @@ public class CardGame {
 
         // Starts the card game 
         try {
-            CardGame game = new CardGame(numPlayers, packFilePath); // Initialising the CardGame class
+            CardGame game = new CardGame(numPlayers, packFilePath); // Initializing the CardGame class
             game.startGame();
+            System.out.println("Thank you! Your files are ready.");
         } catch (IOException e) {
-            System.out.println("An unexpected error occurred while starting the game. Please try again: " + e.getMessage());
+            System.out.println("An unexpected error occurred while starting the game. Please check the input file and try again: " + e.getMessage());
         }
     }
 }
