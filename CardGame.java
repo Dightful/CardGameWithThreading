@@ -248,7 +248,7 @@ public class CardGame {
             CardGame game = new CardGame(numPlayers, packFilePath); // Initialising the CardGame class
             game.startGame();
         } catch (IOException e) {
-            System.out.println("An unexpected error occurred while starting the game. Please check the input file and try again: " + e.getMessage());
+            System.out.println("An unexpected error occurred while starting the game. Please try again: " + e.getMessage());
         }
     }
 }
