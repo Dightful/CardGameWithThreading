@@ -1,0 +1,14 @@
+package org.example;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
+
+@Suite
+@SelectClasses({
+        TestCard.class,  // Our test classes
+        TestCardDeck.class,
+        TestPlayer.class,
+        TestCardGame.class
+})
+public class TestSuite {
+    // A holder for the annotations.
+}
