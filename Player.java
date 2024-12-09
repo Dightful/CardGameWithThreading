@@ -46,9 +46,9 @@ public class Player extends Thread {
         }
     }
 
-    // Method that is called from the CardGame class. This method sets the cardgame field to the instance of the CardGame.
-    // The method in the CardGame class calls this method and sets the cardgame field to be the instance of that cardgame same for all players. So when game is won, the winning player 
-    //can alter a field in the same cardgame object. This is so that the other players know that the game has been won instantly. Thus they can stop playing. 
+    // The method in the CardGame class calls this method for all players, ensuring that the cardGame field in each player object references the same CardGame instance. 
+    // This allows the winning player to update the "gameWon" field in the players' shared CardGame object. 
+    // Thus, enabling other players to immediately recognize that the game has ended and thus stop playing.
     public void setMain(CardGame cardgame) {
         this.cardgame = cardgame;
     }
