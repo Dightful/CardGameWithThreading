@@ -1,207 +1,136 @@
 package org.example;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+class TestCardDeck {
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
+    private CardDeck cardDeck;
+    private Card card;
 
-public class TestCardGame {
-
-    @Test
-    public void testGetWinnerIdBeforeGameStart() throws IOException {
-        // Create temporary file
-        Path tempFile = Files.createTempFile("pack-", ".txt");
-        Files.write(tempFile, "1\n2\n3\n4\n5\n6\n7\n8\n1\n2\n3\n4\n5\n6\n7\n8\n".getBytes());
-        CardGame cardGame = new CardGame(2, tempFile.toString());
-
-        // Gets winnerID
-        Integer winnerId = cardGame.getWinnerId();
-
-        // Checks winnerID
-        assertNull(winnerId);
-
-        // Cleans up the temporary file
-        Files.delete(tempFile);
+    @BeforeEach
+    void setUp() {
+        cardDeck = new CardDeck();
+        // Card value can be any non-negative integer, here example is 1
+        card = new Card(1);
     }
 
     @Test
-    public void testGetWinnerIdAfterGameWon() throws IOException {
-        // Create temporary file
-        Path tempFile = Files.createTempFile("pack-", ".txt");
-        Files.write(tempFile, "1\n2\n3\n4\n5\n6\n7\n8\n1\n2\n3\n4\n5\n6\n7\n8\n".getBytes());
-        CardGame cardGame = new CardGame(2, tempFile.toString());
-
-        // Simulate a player winning
-        cardGame.notifyAllPlayers(1);
-
-        // Gets WinnerID
-        Integer winnerId = cardGame.getWinnerId();
-
-        // Checks WinnerID
-        assertEquals(1, winnerId);
-
-        // Cleans up the temporary file
-        Files.delete(tempFile);
+    void testAddCard() {
+        cardDeck.addCard(card);
+        // Checks if the card deck has a card in it
+        assertFalse(cardDeck.isEmpty(), "Deck should not be empty after adding a card");
     }
 
     @Test
-    public void testGetWinnerIdWithMultiplePlayers() throws IOException {
-        // Create temporary file
-        Path tempFile = Files.createTempFile("pack-", ".txt");
-        String packData = "";
-        for (int i = 0; i < 40; i++) {
-            packData += (i % 10 + 1) + "\n";
+    void testDrawCard() {
+        cardDeck.addCard(card);
+        Card drawnCard = cardDeck.drawCard();
+        // Checks if the card drawn has the same value that was put in the deck
+        assertEquals(card, drawnCard, "The drawn card should be the same as the added card");
+        // Checks if the card deck is empty after removing the card
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after drawing the only card");
+    }
+
+    @Test
+    void testIsEmpty() {
+        // Checks if the card deck is empty to begin with
+        assertTrue(cardDeck.isEmpty(), "New deck should be empty");
+        cardDeck.addCard(card);
+        // Checks if the card deck has a card
+        assertFalse(cardDeck.isEmpty(), "Deck should not be empty after adding a card");
+        cardDeck.drawCard();
+        // Checks if the card deck is empty after the card if removed
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after all cards are drawn");
+    }
+
+    @Test
+    void testToString() {
+        String emptyDeckString = cardDeck.toString();
+        // Tests an empty deck for it to return an empty []
+        assertEquals("[]", emptyDeckString, "Empty deck should be represented as []");
+        cardDeck.addCard(card);
+        String nonEmptyDeckString = cardDeck.toString();
+        // Checks for the deck to be return something in the []
+        assertNotEquals("[]", nonEmptyDeckString, "Non-empty deck should not be represented as []");
+    }
+
+    @Test
+    void testAddMultipleCards() {
+        // Add multiple cards to the deck
+        Card card1 = new Card(2);
+        Card card2 = new Card(3);
+        cardDeck.addCard(card);
+        cardDeck.addCard(card1);
+        cardDeck.addCard(card2);
+        // Checks the deck if there is the multiple cards in order
+        assertEquals("[1, 2, 3]", cardDeck.toString(), "Deck should contain the cards in added order");
+    }
+
+    @Test
+    void testAddNullCard() {
+        // Checks if an exception is thrown for null
+        assertThrows(NullPointerException.class, () -> cardDeck.addCard(null), "Adding a null card should throw a NullPointerException");
+    }
+
+    @Test
+    void testDrawAllCards() {
+        // Adds 10 cards to the deck
+        for (int i = 0; i < 10; i++) {
+            cardDeck.addCard(new Card(i));
         }
-        Files.write(tempFile, packData.getBytes());
-        CardGame cardGame = new CardGame(5, tempFile.toString());
-
-        // Simulate a player winning
-        cardGame.notifyAllPlayers(3);
-
-        // Gets WinnerID
-        Integer winnerId = cardGame.getWinnerId();
-
-        // Checks the WinnerID
-        assertEquals(3, winnerId);
-
-        // Cleans up the temporary file
-        Files.delete(tempFile);
-    }
-
-    @Test
-    void testValidateTextFile_ThrowsExceptionForNullPath() {
-        Exception exception = assertThrows(CardGame.InvalidFileException.class, () -> {
-            CardGame.validateTextFile(null);
-        });
-        // Checks if an exception is thrown for null file
-        assertEquals("The file is null.", exception.getMessage());
-    }
-
-    @Test
-    void testValidateTextFile_ThrowsExceptionForNonTxtFile(@TempDir Path tempDir) throws IOException {
-        Path filePath = Files.createFile(tempDir.resolve("invalidfile.doc"));
-        Exception exception = assertThrows(CardGame.InvalidFileException.class, () -> {
-            CardGame.validateTextFile(filePath.toString());
-        });
-        // Checks if an exception is thrown for an invalid file extension
-        assertEquals("The file does not have a .txt extension.", exception.getMessage());
-    }
-
-    @Test
-    void testValidateTextFile_ThrowsExceptionForNonExistentFile() {
-        Exception exception = assertThrows(CardGame.InvalidFileException.class, () -> {
-            CardGame.validateTextFile("nonexistent.txt");
-        });
-        // Checks if an exception is thrown if the file doesn't exist
-        assertEquals("The file does not exist or is not a valid file.", exception.getMessage());
-    }
-
-    @Test
-    void testValidateTextFile_ThrowsExceptionForEmptyFile(@TempDir Path tempDir) throws IOException {
-        Path filePath = Files.createFile(tempDir.resolve("empty.txt"));
-        Exception exception = assertThrows(CardGame.InvalidFileException.class, () -> {
-            CardGame.validateTextFile(filePath.toString());
-        });
-        // Checks if an exception is thrown if the file is empty
-        assertEquals("The file is empty.", exception.getMessage());
-    }
-
-    @Test
-    void testValidateTextFile_SucceedsForValidFile(@TempDir Path tempDir) throws IOException {
-        Path filePath = tempDir.resolve("valid.txt");
-        Files.write(filePath, "1\n2\n3\n4\n".getBytes());
-        // Valid file check
-        assertDoesNotThrow(() -> CardGame.validateTextFile(filePath.toString()));
-    }
-    @TempDir
-    Path tempDir;
-
-    @Test
-    void testCardGameMainWithValidInputs() throws IOException {
-        // Set up the temporary file with mock data
-        Path fakePackFilePath = tempDir.resolve("pack.txt");
-        Files.write(fakePackFilePath, "1\n2\n3\n4\n5\n6\n7\n8\n".repeat(3).getBytes());
-
-        String packFilePath = fakePackFilePath.toAbsolutePath().toString();
-
-        // Prepare user inputs using a fake input stream
-        String userInputs = "3\n" + packFilePath + "\n";
-        InputStream originalIn = System.in;
-        System.setIn(new ByteArrayInputStream(userInputs.getBytes()));
-
-        // Capture output to verify expected output
-        PrintStream originalOut = System.out;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
-
-        try {
-            CardGame.main(new String[]{});
-        } finally {
-            System.setIn(originalIn);
-            System.setOut(originalOut);
+        // Draws all 10 cards
+        for (int i = 0; i < 10; i++) {
+            Card drawnCard = cardDeck.drawCard();
+            // Checks if all cards are drawn in order
+            assertEquals(i, drawnCard.getValue(), "Drawn cards should be in the order they were added");
         }
-
-        String programOutput = outputStream.toString();
-
-        // Test the expected interactions in the console
-        assertTrue(programOutput.contains("Please enter the number of players: "));
-        assertTrue(programOutput.contains("Please enter the location of the pack to load: "));
+        // Checks if deck is empty after all cards are drawn
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after all cards are drawn");
     }
 
     @Test
-    void testCardGameMainWithInvalidNumberOfPlayers() throws IOException {
-        // Prepare temporary file path
-        Path fakePackFilePath = tempDir.resolve("pack.txt");
-        Files.write(fakePackFilePath, "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16".getBytes());
+    void testSequentialAddAndDraw() {
+        // Adds a card
+        cardDeck.addCard(new Card(1));
+        Card drawnCard1 = cardDeck.drawCard();
+        // Checks if the card drawn is the card added
+        assertEquals(1, drawnCard1.getValue(), "First draw should return the first added card");
 
-        String userInputs = "1\n2\n" + fakePackFilePath.toString() + "\n";
-        InputStream originalIn = System.in;
-        System.setIn(new ByteArrayInputStream(userInputs.getBytes()));
+        // Adds two cards
+        cardDeck.addCard(new Card(2));
+        cardDeck.addCard(new Card(3));
 
-        // Capture system output
-        PrintStream originalOut = System.out;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
+        Card drawnCard2 = cardDeck.drawCard();
+        // Checks if the second card drawn is the second card added
+        assertEquals(2, drawnCard2.getValue(), "Second draw should return the second added card");
 
-        try {
-            CardGame.main(new String[]{});
-        } finally {
-            System.setIn(originalIn);
-            System.setOut(originalOut);
-        }
+        Card drawnCard3 = cardDeck.drawCard();
+        // Checks if the third card drawn is the third cards added
+        assertEquals(3, drawnCard3.getValue(), "Third draw should return the third added card");
 
-        String output = outputStream.toString();
-
-        // Checks if an exception is thrown for invalid number of players
-        assertTrue(output.contains("Invalid input. Please enter an integer 2 or above."));
+        // Checks if the deck is empty after all the cards are drawn
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after all sequentially added cards are drawn");
     }
 
     @Test
-    void testCardGameMainWithInvalidPackFilePath() {
-        String userInputs = "3\ninvalid/path/to/pack.txt\nvalid/path/to/pack.txt\n";
-        InputStream originalIn = System.in;
-        System.setIn(new ByteArrayInputStream(userInputs.getBytes()));
-
-        // Capture system output
-        PrintStream originalOut = System.out;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
-
-        try {
-            CardGame.main(new String[]{});
-        } catch (Exception ignored) {
-            // Ignore any exception thrown during the test
-        } finally {
-            System.setIn(originalIn);
-            System.setOut(originalOut);
+    void testLargeNumberOfCards() {
+        // Adds a large number of cards
+        int largeNum = 1000;
+        for (int i = 0; i < largeNum; i++) {
+            cardDeck.addCard(new Card(i));
         }
+        // Checks if the deck has cards in it after all the cards are added
+        assertFalse(cardDeck.isEmpty(), "Deck should not be empty after adding a large number of cards");
 
-        String output = outputStream.toString();
-
-        assertTrue(output.contains("An error occurred while reading the file:"));
+        // Removes all the cards
+        for (int i = 0; i < largeNum; i++) {
+            Card drawnCard = cardDeck.drawCard();
+            // Checks if the cards are removed the same order that they were added
+            assertEquals(i, drawnCard.getValue(), "Drawn cards should be in the order they were added");
+        }
+        // Check if the deck is empty after all the cards are removed
+        assertTrue(cardDeck.isEmpty(), "Deck should be empty after drawing all cards");
     }
 }
