@@ -63,9 +63,9 @@ class TestPlayer {
         try (FileWriter writer = new FileWriter(fileName, false)) {
             // Clear the file
         }
-        
+
         player.logAction(expectedMessage);
-        
+
         // Read the content from the file
         List<String> lines = java.nio.file.Files.readAllLines(java.nio.file.Paths.get(fileName));
 
