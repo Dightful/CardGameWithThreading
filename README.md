@@ -10,29 +10,20 @@ Need maven with these dependencies:
 
 From copied README:
 
-Compiling the main program
-To compile the main program, do:
+To run from the JAR file, do:
 
-javac CardGame.java
-Creating a JAR file
-To create a JAR file containing the main program, first recompile the program. Then, do:
+java -jar CardGame.jar
 
-jar -cfe cards.jar CardGame *
-Running the main program
-To run the main program, do:
+Please note that the directory where the CMD is currently located will be the destination for the output files (e.g., player1_output.txt). We recommend setting the CMD directory to the location of the cards.jar file.
 
-java CardGame
-Alternatively, to run from the JAR file, do:
+You will be prompted to enter the number of players and then provide the location of a pack file. Please note that only .txt files are accepted. Each card denomination should be on a new line with no extra whitespace, strings, or symbols. If the program indicates an issue with your pack file, review it carefully to ensure that it does not contain any invalid characters.
 
-java -jar cards.jar
-You will be prompted to input the number of players and then be asked to provide the location of a pack file. Please note that only .txt files are accepted, with all card denominations on a new line, with no whitespace or strings or any other symbols. If the executable tells you that there is a problem with your pack file, please check again and ensure that none of these illegal characters are appearing anywhere.
+When referencing the pack file, you can use either an absolute or relative filepath. To reference the file by name alone (e.g., "pack.txt"), ensure the pack file is in the same directory as the compiled .class files or the .jar executable. If issues arise, switch to using the absolute path for the pack file.
 
-When referencing the pack file, you may use an absolute or relative filepath. Please note that in order to simply reference the file by name (e.g., simply using "pack.txt"), you must make sure that the pack file sits in the same directory as the .class compiled files or the .jar executable. If there are problems with this, please revert to using the absolute path of the desired pack file.
+Testing:
+The tests are written using JUnit 5. junit.jar and hamcrest-core.jar are provided in the submission to run the tests.
 
-Testing
-The tests are written using JUnit 4. junit.jar and hamcrest-core.jar are provided in the submission to run the tests.
-
-Compiling the tests
+Compiling the tests:
 To compile the tests, do:
 
 javac --class-path ".;junit.jar" TestSuite.java
@@ -42,9 +33,7 @@ To run all the tests, do:
 java -class-path ".;junit.jar;hamcrest-core.jar" org.junit.runner.JUnitCore TestSuite
 TestSuite is a class that runs all the tests.
 
-Footnotes *USE THIS
-When viewing the deck files after a game, it is possible that some decks may have more/less cards. This is normal and to be expected - due to the nature of the multithreaded environment, the game may suddenly end while certain decks have less cards than others.
+Footnotes:
+When reviewing the deck files after a game, you may notice that some decks contain more or fewer cards than others. This is because, in a multithreaded environment, actions from different threads can overlap, even at the same timestamp. Thus, in the same moment that the winning player declares victory, due to the nature of threading, another player might still complete their turn. This can result in a card being taken from one deck and added to another before the game fully stops, causing some decks to have one less card while others have one more. This behavior is a normal outcome of this multithreaded system.
 
-Please note that the number of players is decided by the user and the pack should be provided by the user as well.
-
-Developed by Talhaa Hussain and Reuben Kurian for the University of Exeter, module code ECM2414.
+Developed by Matthew Dawson and Jacob Nixon for the University of Exeter, module code ECM2414.
