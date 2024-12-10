@@ -1,3 +1,5 @@
+package org.game;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,7 +16,7 @@ public class CardGame {
 
     // Constructor to initialize the game with the number of players and the card pack file
     public CardGame(int numPlayers, String packFilePath) throws IOException {
-        this.numPlayers = numPlayers;         // Assign number of players from the parameter. 
+        this.numPlayers = numPlayers;         // Assign number of players from the parameter.
         this.players = new ArrayList<>();     // Initialize the player list.
         this.decks = new ArrayList<>();       // Initialize the deck list.
         this.pack = new ArrayList<>();        // Initialize the pack list.
@@ -95,9 +97,9 @@ public class CardGame {
                 // One card of the deck is written on each line.
                 writer.write(currentDeckFileContents + "\n");
             } catch (IOException e) {
-                e.printStackTrace(); // Handles any errors encouted when trying to write to the deck files. 
+                e.printStackTrace(); // Handles any errors encouted when trying to write to the deck files.
             }
-            counter++; // Incrementing the counter. 
+            counter++; // Incrementing the counter.
         }
     }
 
@@ -137,24 +139,24 @@ public class CardGame {
 
     // Validate the pack file to ensure it meets the game's requirements.
     public static void validateTextFile(String filePath) throws InvalidFileException, IOException {
-    
+
         // Check if the filePath is null. If it is, throw an exception with a relevant message.
         if (filePath == null) {
             throw new InvalidFileException("The file is null.");
         }
 
         Path path = Paths.get(filePath);// Convert the filePath string into a Path object for file system operations.
-        
+
         // Check if the file does not have a ".txt" extension. If so, throw an exception.
         if (!filePath.endsWith(".txt")) {
             throw new InvalidFileException("The file does not have a .txt extension.");
         }
-    
+
         // Check if the file exists and if it is a regular file (not a directory). If not, throw an exception.
         if (!Files.exists(path) || !Files.isRegularFile(path)) {
             throw new InvalidFileException("The file does not exist or is not a valid file.");
         }
-    
+
         // Check if the file is empty. If it is, throw an exception.
         if (Files.size(path) == 0) {
             throw new InvalidFileException("The file is empty.");
@@ -162,7 +164,7 @@ public class CardGame {
     }
 
     public static void main(String[] args) {
-        // Gathers the input from the user inputted into the command line. 
+        // Gathers the input from the user inputted into the command line.
         Scanner inputsFromUser = new Scanner(System.in);
 
         int numPlayers = 0;
@@ -171,18 +173,18 @@ public class CardGame {
 
         // Prompt user for the number of players until valid input is received
         while (!validInput) {
-            
+
             // Ask the user to enter the number of players for the game
             System.out.println("Please enter the number of players: ");
-            
+
             try {
                 // Get the user's input as an integer representing the number of players
                 numPlayers = inputsFromUser.nextInt();
-                
+
                 // Check if the number of players is 2 or greater (since there must be at least 2 players)
                 if (numPlayers >= 2) {
                     // If the input is valid (>= 2), set validInput to true to exit the loop
-                    validInput = true; 
+                    validInput = true;
                 } else {
                     // If the input is less than 2, notify the user that it is invalid
                     System.out.println("Invalid input. Please enter an integer 2 or above.");
@@ -190,7 +192,7 @@ public class CardGame {
             } catch (Exception e) {
                 // If the user enters a non-integer value, notify them of the invalid input
                 System.out.println("Invalid input. Please enter a valid integer.");
-                
+
                 // Clear the invalid input from the scanner buffer so that the user can try again
                 inputsFromUser.nextLine();
             }
@@ -203,10 +205,10 @@ public class CardGame {
 
         // Prompt user for the location of the card pack file until a valid input is received
         while (!validInput) {
-            
+
             // Display a message asking the user to enter the location of the card pack file
             System.out.println("Please enter the location of the pack to load: ");
-            
+
             // Read the user's input (path of the card pack file) as a string
             packFilePath = inputsFromUser.nextLine();
 
@@ -220,7 +222,7 @@ public class CardGame {
                     try {
                         // Attempt to count the number of lines in the file to validate its size
                         long lineCount = Files.lines(Paths.get(packFilePath)).count();
-                        
+
                         // Verify if the file contains the correct number of lines (8 * number of players)
                         if (lineCount != 8 * numPlayers) {
                             // If the line count is not valid, notify the user about the expected number of cards
@@ -239,10 +241,10 @@ public class CardGame {
                 }
             }
         }
-    
-        inputsFromUser.close(); //Close the input scanner. 
 
-        // Starts the card game 
+        inputsFromUser.close(); //Close the input scanner.
+
+        // Starts the card game
         try {
             CardGame game = new CardGame(numPlayers, packFilePath); // Initializing the CardGame class
             game.startGame();
