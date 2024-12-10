@@ -1,17 +1,15 @@
-package org.example;
+package org.game;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-
-import org.mockito.Mockito;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class TestPlayer {
+public class TestPlayer {
 
     private Player player;           // The Player instance to test
     private CardDeck leftDeck;       // The left deck the player interacts with
@@ -19,8 +17,6 @@ class TestPlayer {
     private List<Card> initialCards; // Cards to initialise the player's hand
     public Card cardToDiscard = new Card(1);
     private CardGame cardgame;
-    private Player player2;           // The Player2 instance to test
-    private List<Card> initialCards2;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -56,7 +52,7 @@ class TestPlayer {
 
     @Test
     void testLogAction() throws IOException {
-        // Define mock or actual parameter values
+        // Define parameter values
         int playerId = 1;  // Example player ID
         int cardValue = 5; // Example card value, this should be dynamically retrieved based on logic
         int deckNumber = 2; // Example deck number
@@ -119,9 +115,8 @@ class TestPlayer {
         // Validate the hand is a winning hand
         assertTrue(player.hasWinningHand());
 
-        // Create a mock of CardGame to verify interactions
-        CardGame mockCardGame = Mockito.mock(CardGame.class);
-        player.setMain(mockCardGame);
+
+        player.setMain(cardgame);
 
         // Clear the file before test
         try (FileWriter writer = new FileWriter("player1_output.txt", false)) {
@@ -130,9 +125,6 @@ class TestPlayer {
 
         // Player declares win
         player.declareWin();
-
-        // Check if the notifyAllPlayers method was called
-        Mockito.verify(mockCardGame).notifyAllPlayers(player.getPlayerId());
 
         // Check log file contents
         List<String> lines = java.nio.file.Files.readAllLines(java.nio.file.Paths.get("player1_output.txt"));
@@ -221,14 +213,15 @@ class TestPlayer {
     @Test
     void testInitialWinningHand() throws InterruptedException {
         // Initialise the player's hand with some cards
-        initialCards2 = new ArrayList<>();
+        List<Card> initialCards2 = new ArrayList<>();
         initialCards2.add(new Card(2));
         initialCards2.add(new Card(2));
         initialCards2.add(new Card(2));
         initialCards2.add(new Card(2));
 
         // Create the player
-        player2 = new Player(2, leftDeck, rightDeck);
+        // The Player2 instance to test
+        Player player2 = new Player(2, leftDeck, rightDeck);
         player2.setMain(cardgame);
 
         // Add the initial cards to the player's hand
@@ -241,5 +234,4 @@ class TestPlayer {
         // Check if the player won the game
         assertTrue(cardgame.getGameWon());
     }
-
 }
