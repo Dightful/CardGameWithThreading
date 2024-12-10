@@ -1,5 +1,6 @@
 package org.game;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,13 +31,17 @@ public class Player extends Thread {
     // A reference to the CardGame class, allowing the player to signal a win to other players. It is the same instance of CardGame for all players. (Defined in the Cardgame class)
     private CardGame cardgame;
 
+    // Get the current working directory
+    private String currentWorkingDir = System.getProperty("user.dir");
+
     // Constructor to initialize a player with their ID and neighboring decks.
     public Player(int id, CardDeck leftDeck, CardDeck rightDeck) {
         this.id = id; // Assigns the player's ID.
         this.preferredValue = id; // Sets the preferred card value based on ID.
         this.leftDeck = leftDeck; // Assigns the left deck.
         this.rightDeck = rightDeck; // Assigns the right deck.
-        this.outputFileName = "player" + id + "_output.txt"; // Creates a unique output file name.
+        // Set the output file name relative to the current working directory
+        this.outputFileName = currentWorkingDir + File.separator + "player" + id + "_output.txt";
 
         // Clears the contents of the player's output file at the start of the game.
         // This ensures that previous game data does not interfere with the current game's logs.
@@ -86,7 +91,7 @@ public class Player extends Thread {
         }
     }
 
-    // Method for when a player has won. It declares and logs the win. Also notifes other players via calling the method in the CardGame object.
+    // Method for when a player has won. It declares and logs the win. Also notifies other players via calling the method in the CardGame object.
     public void declareWin() {
         logAction("player " + id + " wins"); // Logs the win message.
         logAction("player " + id + " exits"); // Logs the exit message.
@@ -97,7 +102,7 @@ public class Player extends Thread {
     // Handles a losing player's final actions when another player wins.
     public void stopRunning(int winnerId, int numPlayers) {
         if (winnerId != id) { // Only execute for losing players.
-            // Sets up the messges to log.
+            // Sets up the messages to log.
             String LosingMessage1 = "player " + winnerId + " has informed player " + id + " that player " + winnerId + " has won";
             String LosingMessage2 = "player " + id + " exits";
             String LosingMessage3 = "player " + id + " final hand: " + hand;
