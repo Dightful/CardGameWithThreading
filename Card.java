@@ -1,3 +1,5 @@
+package org.game;
+
 // Represents a single card in a card game.
 // Each card has a fixed integer value that defines its rank or type.
 public class Card {
@@ -15,13 +17,13 @@ public class Card {
     }
 
     // Retrieves the value of the card.
-    public int getValue() {
+    public Integer getValue() {
         return value; // Returns the card's value.
     }
 
     // Returns a string representation of the card int value.
     @Override
     public String toString() {
-        return String.valueOf(value); 
+        return String.valueOf(value);
     }
 }
