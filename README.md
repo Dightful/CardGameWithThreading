@@ -21,17 +21,40 @@ You will be prompted to enter the number of players and then provide the locatio
 When referencing the pack file, you can use either an absolute or relative filepath. To reference the file by name alone (e.g., "pack.txt"), ensure the pack file is in the same directory as the compiled .class files or the .jar executable. If issues arise, switch to using the absolute path for the pack file.
 
 Testing:
-The tests are written using JUnit 5. junit.jar and hamcrest-core.jar are provided in the submission to run the tests.
+The tests are written using JUnit 5. A .txt file is given that contain all the dependencies. The test must be ran in Maven.
 
-Compiling the tests:
-To compile the tests, do:
+Set up all the Classes and test Classes so that they follow this file structure:
 
-javac --class-path ".;junit.jar" TestSuite.java
-Running the tests
-To run all the tests, do:
+CardGame
+│
+├── .idea
+│
+├── src
+│   └── main
+│       └── java
+│           └── org
+│               └── game
+│                   ├── Card.java
+│                   ├── CardDeck.java
+│                   ├── CardGame.java
+│                   └── Player.java
+│
+├── resources
+│   └── pack.txt
+│
+└── test
+    └── java
+        └── org
+            └── game
+                ├── TestCard.java
+                ├── TestCardDeck.java
+                ├── TestCardGame.java
+                ├── TestPlayer.java
+                └── TestSuite.java
 
-java -class-path ".;junit.jar;hamcrest-core.jar" org.junit.runner.JUnitCore TestSuite
-TestSuite is a class that runs all the tests.
+pack.txt has been given in the same file as the test classes.
+Once all the classes are put in this format and all the dependencies have been added, you will need to sync the maven project in your IDE.
+After this, you can go to TestSuite.Jave to run the test for all the classes or select individual classes for testing.
 
 Footnotes:
 When reviewing the deck files after a game, you may notice that some decks contain more or fewer cards than others. This is because, in a multithreaded environment, actions from different threads can overlap, even at the same timestamp. Thus, in the same moment that the winning player declares victory, due to the nature of threading, another player might still complete their turn. This can result in a card being taken from one deck and added to another before the game fully stops, causing some decks to have one less card while others have one more. This behavior is a normal outcome of this multithreaded system.
