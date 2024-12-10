@@ -1,4 +1,4 @@
-package org.example;
+package org.game;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
